@@ -18,7 +18,7 @@ question -> embed -> cosine top-k search -> prompt with passages -> LLM answer +
   (returns the best matching passage, so the project works with no API key)
 - Grounded answers with citations; irrelevant questions are refused instead of hallucinated
 - Web UI (`/`) and API docs (`/docs`); upload size limit; XSS-safe rendering
-- **Retrieval evaluation script** (hit@k, MRR) and 18 unit tests + API tests
+- **Retrieval evaluation script** (hit@k, MRR) and 25 unit tests + API tests
 - Dockerfile and Docker Compose
 
 ## Run locally
