@@ -1,0 +1,19 @@
+services:
+  web:
+    build:
+      context: .
+      args:
+        INSTALL_EXTRAS: ${INSTALL_EXTRAS:-false}
+    ports:
+      - "8000:8000"
+    environment:
+      EMBEDDINGS: ${EMBEDDINGS:-auto}            # auto | hash | sbert
+      LLM_PROVIDER: ${LLM_PROVIDER:-none}        # none | anthropic | ollama
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      LLM_MODEL: ${LLM_MODEL:-}
+    volumes:
+      - rag-data:/data                           # keeps the index across restarts
+    restart: unless-stopped
+
+volumes:
+  rag-data:

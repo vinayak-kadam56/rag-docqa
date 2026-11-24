@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Document Q&amp;A</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 820px; margin: 2rem auto; padding: 0 1rem; color: #1a1a1a; }
+  section { border: 1px solid #ddd; border-radius: 10px; padding: 1rem; margin-bottom: 1.25rem; }
+  h2 { margin-top: 0; font-size: 1.1rem; }
+  button { padding: .45rem .9rem; border: 0; border-radius: 6px; background: #2563eb; color: #fff; cursor: pointer; }
+  button.del { background: #b91c1c; padding: .2rem .6rem; }
+  input[type=text] { width: 70%; padding: .5rem; border: 1px solid #bbb; border-radius: 6px; }
+  li { margin: .35rem 0; }
+  .err { color: #b91c1c; }
+  .muted { color: #666; font-size: .9rem; }
+  .answer { white-space: pre-wrap; background: #f3f4f6; padding: .75rem; border-radius: 8px; margin: .75rem 0; }
+  .source { border-left: 3px solid #2563eb; padding-left: .75rem; margin: .6rem 0; white-space: pre-wrap; font-size: .9rem; }
+</style>
+</head>
+<body>
+<h1>Document Q&amp;A</h1>
+<p class="muted">Upload PDF, .txt or .md files, then ask questions. Answers come only from your documents.</p>
+
+<section>
+  <h2>1. Documents</h2>
+  <input type="file" id="file" accept=".pdf,.txt,.md">
+  <button id="upload">Upload</button>
+  <div id="upload-msg" class="muted"></div>
+  <ul id="docs"></ul>
+</section>
+
+<section>
+  <h2>2. Ask a question</h2>
+  <input type="text" id="question" placeholder="e.g. How do I keep data after a container is removed?">
+  <button id="ask">Ask</button>
+  <div id="ask-msg" class="muted"></div>
+  <div id="result"></div>
+</section>
+
+<script>
+const $ = (id) => document.getElementById(id);
+
+async function loadDocs() {
+  const docs = await (await fetch('/api/documents')).json();
+  const list = $('docs');
+  list.replaceChildren();
+  if (!docs.length) { list.textContent = 'No documents yet.'; return; }
+  for (const d of docs) {
+    const li = document.createElement('li');
+    li.append(d.filename + ' (' + d.chunks + ' chunks) ');
+    const btn = document.createElement('button');
+    btn.className = 'del'; btn.textContent = 'Delete';
+    btn.onclick = async () => { await fetch('/api/documents/' + d.doc_id, { method: 'DELETE' }); loadDocs(); };
+    li.appendChild(btn);
+    list.appendChild(li);
+  }
+}
+
+$('upload').onclick = async () => {
+  const file = $('file').files[0];
+  const msg = $('upload-msg');
+  if (!file) { msg.textContent = 'Choose a file first.'; return; }
+  const form = new FormData();
+  form.append('file', file);
+  msg.className = 'muted'; msg.textContent = 'Uploading and indexing...';
+  const res = await fetch('/api/documents', { method: 'POST', body: form });
+  const data = await res.json();
+  msg.className = res.ok ? 'muted' : 'err';
+  msg.textContent = res.ok ? 'Indexed ' + data.filename + ' into ' + data.chunks + ' chunks.' : data.detail;
+  if (res.ok) { $('file').value = ''; loadDocs(); }
+};
+
+$('ask').onclick = async () => {
+  const question = $('question').value.trim();
+  const msg = $('ask-msg'), out = $('result');
+  if (question.length < 3) { msg.className = 'err'; msg.textContent = 'Type a question.'; return; }
+  msg.className = 'muted'; msg.textContent = 'Thinking...';
+  out.replaceChildren();
+  const res = await fetch('/api/ask', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ question }),
+  });
+  const data = await res.json();
+  if (!res.ok) { msg.className = 'err'; msg.textContent = typeof data.detail === 'string' ? data.detail : 'Invalid input.'; return; }
+  msg.textContent = 'Answer mode: ' + data.provider;
+  const ans = document.createElement('div');
+  ans.className = 'answer'; ans.textContent = data.answer;   // textContent: never render model/file text as HTML
+  out.appendChild(ans);
+  data.sources.forEach((s, i) => {
+    const div = document.createElement('div');
+    div.className = 'source';
+    div.textContent = '[' + (i + 1) + '] ' + s.filename + ' (score ' + s.score + ')\n' + s.text;
+    out.appendChild(div);
+  });
+};
+$('question').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('ask').click(); });
+
+loadDocs();
+</script>
+</body>
+</html>

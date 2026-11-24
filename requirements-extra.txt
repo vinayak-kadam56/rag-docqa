@@ -1,0 +1,3 @@
+# Optional: better embeddings + Claude answers
+sentence-transformers>=2.7
+anthropic>=0.40

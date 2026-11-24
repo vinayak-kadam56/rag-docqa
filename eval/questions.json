@@ -1,0 +1,12 @@
+[
+  {"question": "How do I keep data after a container is deleted?", "doc": "docker_basics.txt", "keyword": "volumes"},
+  {"question": "What does docker compose do?", "doc": "docker_basics.txt", "keyword": "docker-compose.yml"},
+  {"question": "How do I map a container port to the host?", "doc": "docker_basics.txt", "keyword": "-p 8000:8000"},
+  {"question": "Where are images pulled from by default?", "doc": "docker_basics.txt", "keyword": "Docker Hub"},
+  {"question": "How do I save my changes in git?", "doc": "git_basics.txt", "keyword": "git commit"},
+  {"question": "What causes a merge conflict?", "doc": "git_basics.txt", "keyword": "same lines"},
+  {"question": "What should go in a gitignore file?", "doc": "git_basics.txt", "keyword": "virtual environments"},
+  {"question": "How do I create a virtual environment?", "doc": "python_venv.txt", "keyword": "python -m venv"},
+  {"question": "Which server runs FastAPI apps?", "doc": "python_venv.txt", "keyword": "Uvicorn"},
+  {"question": "How can someone reproduce my package setup?", "doc": "python_venv.txt", "keyword": "requirements.txt"}
+]
